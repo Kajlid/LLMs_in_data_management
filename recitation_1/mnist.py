@@ -4,7 +4,8 @@ import torchvision
 import torchvision.transforms as transforms
 
 # Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('mps' if torch.mps.is_available() else 'cpu')    # because I have MacOS
 print(f"{str(device)}")
 batch_size = 100
 
@@ -48,27 +49,43 @@ for k in range(3):
 
 # Fully connected neural network with one hidden layer
 class NeuralNet(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
+    def __init__(self, input_size, hidden_size_1, hidden_size_2, hidden_size_3, hidden_size_4, num_classes):
         nn.Module.__init__(self)
-        self.l1 = nn.Linear(input_size, hidden_size)
+        self.l1 = nn.Linear(input_size, hidden_size_1)   # Hidden layer 1
         self.relu = nn.ReLU()
-        self.l2 = nn.Linear(hidden_size, num_classes)
+        self.l2 = nn.Linear(hidden_size_1, hidden_size_2)  # Hidden layer 2
+        self.relu = nn.ReLU()
+        self.l3 = nn.Linear(hidden_size_2, hidden_size_3)  # Hidden layer 3
+        self.relu = nn.ReLU()
+        self.l4 = nn.Linear(hidden_size_3, hidden_size_4)  # Hidden layer 4
+        self.relu = nn.ReLU()
+        self.l5 = nn.Linear(hidden_size_4, num_classes) # Output layer
 
     def forward(self, x):
         out = self.l1(x)
         out = self.relu(out)
         out = self.l2(out)
+        out = self.relu(out)
+        out = self.l3(out)
+        out = self.relu(out)
+        out = self.l4(out)
+        out = self.relu(out)
+        out = self.l5(out)
         # no activation and no softmax at the end!
         return out
 
 # Hyper-parameters
 input_size = 784 # 28x28
-hidden_size = 500
+# hidden_size = 500
+hidden_size_1 = 100
+hidden_size_2 = 75
+hidden_size_3 = 50
+hidden_size_4 = 25
 num_classes = 10
 num_epochs = 2
 learning_rate = 0.001
 
-model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+model = NeuralNet(input_size, hidden_size_1, hidden_size_2, hidden_size_3, hidden_size_4, num_classes).to(device)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
