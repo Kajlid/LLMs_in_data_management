@@ -1,0 +1,7 @@
+.history
+*.pt
+*.pyc
+.DS_Store
+*.txt
+*-ubyte
+*.gz

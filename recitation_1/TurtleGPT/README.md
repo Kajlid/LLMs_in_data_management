@@ -1,0 +1,1 @@
+To run this file, you need to be inside the recitation_1/TurtleGPT/ directory.
