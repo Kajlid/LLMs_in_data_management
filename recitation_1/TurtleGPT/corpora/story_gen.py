@@ -3,7 +3,6 @@ import random
 rules = [
     ["S","NP VP"],
     ["Q","who does NP V # NP $"],
-    ["S", "DET turtle VP"],    # add grammar rule for "the turtle" + verb phrase
 
     ["NP","DET N"],
     ["NP","DET A N"],

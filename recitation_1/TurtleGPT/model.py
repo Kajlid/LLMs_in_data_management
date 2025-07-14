@@ -21,9 +21,7 @@ class TurtleGPT(nn.Module):
         super().__init__()
         assert d_model % n_head == 0
 
-        # self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        # self.device = 'cpu'
-        self.device = 'mps' if torch.mps.is_available() else 'cpu'
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.c_window_size = c_window_size
 
         # ModuleDict registers all these submodules
@@ -47,9 +45,9 @@ class TurtleGPT(nn.Module):
                 torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * n_layer))
 
         print("number of parameters: %.2fM" % (n_params/1e6,))
-        if os.path.exists("model_big_without_residual.pt"):
-            print("loading parameters from model_big_without_residual.pt file")
-            self.load_state_dict(torch.load("model_big_without_residual.pt", map_location=self.device))
+        if os.path.exists("model_baby_crammed.pt"):
+            print("loading parameters from model_baby_crammed.pt file")
+            self.load_state_dict(torch.load("model_baby_crammed.pt", map_location=self.device))
         else:
             print('Starting from scratch')
 
@@ -150,12 +148,8 @@ class TransformerBlock(nn.Module):
         self.feedforward = lambda x: m.dropout(m.c_proj(m.Gelu(m.c_fc(x))))
 
     def forward(self, x):
-        # x = x + self.attn(self.layer_norm_1(x))  # note residual connection
-        # x = x + self.feedforward(self.layer_norm_2(x)) # another residual
-        
-        # TEST, assignment 10 (remove residual connection)
-        x = self.attn(self.layer_norm_1(x))
-        x = self.feedforward(self.layer_norm_2(x))
+        x = x + self.attn(self.layer_norm_1(x))  # note residual connection
+        x = x + self.feedforward(self.layer_norm_2(x)) # another residual
         return x
 
 class NewGELU(nn.Module):

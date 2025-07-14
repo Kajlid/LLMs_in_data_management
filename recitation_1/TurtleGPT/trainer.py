@@ -29,7 +29,7 @@ class Trainer:
         self.prompts = open(prompt_file, 'r').read().split("\n")
         self.iter_num = 0
 
-    def run(self, max_iters=500):    # for fast training of the models, I will only run for 500 iters for this toy example
+    def run(self, max_iters=1000):    # run for 100 iterations
         model = self.model
 
         self.optimizer = model.configure_optimizers(self.learning_rate)
@@ -79,7 +79,7 @@ class Trainer:
                     print('---------------------')
 
                 print("saving model")
-                torch.save(model.state_dict(), "model_big_without_residual.pt" )
+                torch.save(model.state_dict(), "model_baby_crammed.pt" )
 
                 model.train()
 

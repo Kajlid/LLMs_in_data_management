@@ -13,13 +13,10 @@ set_ups = {
 LEARNING_RATE = 0.0005
 
 usage = ['inference','pretraining','SFT'][0]
-# usage = ['inference','pretraining','SFT'][1]
 print(f"USAGE:{usage}")
 
-turtle_type = 'big-turtle'
-# turtle_type = 'nano-turtle'
-# turtle_type = 'baby-turtle'
-# turtle_type = 'bigger-turtle'
+# turtle_type = 'big-turtle'
+turtle_type = 'baby-turtle'
 vocab_size = 100
 corpus_file = "corpora/stories.txt"
 
@@ -40,7 +37,7 @@ if __name__ == '__main__':
             while True:
                 prompt = input("prompt:") + " "
                 x = torch.tensor(train_dataset.encode(prompt), dtype=torch.long)[None, ...].to('cuda' if torch.cuda.is_available() else 'cpu')
-                y = model.generate(x, 500, temperature=0.001)[0]
+                y = model.generate(x, 500, temperature=0.001)[0]    # temperature 0.001
                 completion = ''.join([train_dataset.itot[int(i)] for i in y])
 
                 if completion.find("$") > -1:
