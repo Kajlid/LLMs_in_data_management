@@ -1,7 +1,7 @@
 import random
 
-x_size = 6
-y_size = 6
+x_size = 15
+y_size = 15
 
 state_space={}
 actions = {}
@@ -99,7 +99,10 @@ def walk(state_space, show=True, randomized=False):
         optimal_steps = abs(start_state[0] - current_state[0]) + abs(start_state[1] - current_state[1])
         print("steps:", steps)
         print("optimal steps:", optimal_steps)
+        
+        return True
     
+    return False
     
     
 
@@ -115,11 +118,17 @@ def normalize_values(value):
                 value[(x,y)] = value[(x,y)]/max
 
 def walks(trials):
-    for i in range(trials):
-        walk(state_space, randomized=True, show=False)
+    success_count = 0
+    for _ in range(trials):
+        success = walk(state_space, randomized=True, show=True)
+        
+        if success:
+            success_count += 1
+            
+    print(f"Success rate: {success_count}/{trials}")
 
 if __name__ == "__main__":
     make_world()
-    walks(10000)
     normalize_values(value)
-    walk(state_space, randomized=False, show=True)
+    # walk(state_space, randomized=False, show=True)
+    walks(100)

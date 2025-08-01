@@ -45,9 +45,9 @@ class TurtleGPT(nn.Module):
                 torch.nn.init.normal_(p, mean=0.0, std=0.02/math.sqrt(2 * n_layer))
 
         print("number of parameters: %.2fM" % (n_params/1e6,))
-        if os.path.exists("model_baby_crammed.pt"):
-            print("loading parameters from model_baby_crammed.pt file")
-            self.load_state_dict(torch.load("model_baby_crammed.pt", map_location=self.device))
+        if os.path.exists("model_reason_crammed.pt"):
+            print("loading parameters from model_reason_crammed.pt file")
+            self.load_state_dict(torch.load("model_reason_crammed.pt", map_location=self.device))
         else:
             print('Starting from scratch')
 

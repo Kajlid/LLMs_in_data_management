@@ -6,13 +6,16 @@ import os
 rewards={}
 # x_size = 6
 # y_size = 6
-x_size = 30
-y_size = 30
+x_size = 10
+y_size = 10
+# x_size = 200
+# y_size = 200
 rewards[(0,0)] = 1
 rewards[(5,5)] = -1
 
-#barriers = {}
-#barriers[(3,3)]
+barriers = {}
+barriers[(3,3)] = True
+barriers[(1,0)] = True
 
 def north(state):
     return (state[0], state[1] - 1)
@@ -52,13 +55,15 @@ def available_actions(state):
     x=state[0]
     y=state[1]
     a = []
-    if x != 0:
+    
+    # Make sure that the action would not lead to a barrier
+    if x != 0 and (x - 1, y) not in barriers:
         a.append(west)
-    if x != x_size-1:
+    if x != x_size-1 and (x + 1, y) not in barriers:
         a.append(east)
-    if y != 0:
+    if y != 0 and (x, y - 1) not in barriers:
         a.append(north)
-    if y != y_size-1:
+    if y != y_size-1 and (x, y + 1) not in barriers:
         a.append(south)
     return a
 
@@ -73,9 +78,11 @@ def show_state(current_state):
                 line += "🥛"
             elif (x,y) in rewards and rewards[(x, y)] == -1:
                 line += "☢"
+            elif (x, y) in barriers:  # Display barriers
+                line += "🧱"
             else:
                 line += " "
-        barrier = "🧱"
+        #barrier = "🧱"
 
         print(line + "|")
     print("_" * (x_size+2))
@@ -96,12 +103,20 @@ def make_training_corpus(trials):
             trajectory.append(current_state)
             if current_state in rewards:
                 reward = rewards[current_state]
+                
+                
+        L = len(action_sequence)
+        gamma=0.95
         if reward > 0:
             for i in range(max(len(action_sequence)-(x_size+y_size),0), len(action_sequence)):
-                training_corpus.write(f"{trajectory[i][0]/x_size},{trajectory[i][1]/y_size},{action_sequence[i]}\n")
+                discount = gamma ** (L - i - 1)
+                training_corpus.write(f"{trajectory[i][0]/x_size},{trajectory[i][1]/y_size},{action_sequence[i]},{discount}\n")
+                # training_corpus.write(f"{trajectory[i][0]/x_size},{trajectory[i][1]/y_size},{action_sequence[i]}\n")
         else:
             for i in range(max(len(action_sequence)-2,0), len(action_sequence)):
-                training_corpus.write(f"{trajectory[i][0]/x_size},{trajectory[i][1]/y_size},{iopposite[action_sequence[i]]}\n")
+                discount = gamma ** (L - i - 1)  # number of steps remaining after taking the action i
+                training_corpus.write(f"{trajectory[i][0]/x_size},{trajectory[i][1]/y_size},{iopposite[action_sequence[i]]},{discount}\n")
+                #training_corpus.write(f"{trajectory[i][0]/x_size},{trajectory[i][1]/y_size},{iopposite[action_sequence[i]]}\n")
 
     training_corpus.close()
 
@@ -119,7 +134,8 @@ class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
         nn.Module.__init__(self)
         self.l1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
+        # self.relu = nn.ReLU()
+        self.relu = nn.LeakyReLU()
         self.l2 = nn.Linear(hidden_size, hidden_size)
         self.l3 = nn.Linear(hidden_size, num_classes)
 
@@ -133,7 +149,7 @@ class NeuralNet(nn.Module):
 
 model = NeuralNet(input_size, hidden_size, num_classes).to(device)
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
 if os.path.exists("model.pt"):
     print("loading parameters from model.pt file")
@@ -148,23 +164,29 @@ def train(num_epochs):
 
     batches = []
     clabels = []
+    discount_batch = []
     try:
         i = 0
         batch = []
         label = []
+        discounts = []
         while True:
             next_line = training_corpus.readline().split(',')
             x=float(next_line[0])
             y=float(next_line[1])
             a=int(next_line[2].strip())
+            discount = float(next_line[3].strip())
             batch.append([x,y])
             label.append(a)
+            discount_batch.append(discount)
             i+=1
             if i==batch_size:
                 batches.append(torch.FloatTensor(batch))
                 clabels.append(torch.LongTensor(label))
+                discounts.append(torch.FloatTensor(discount_batch))
                 batch = []
                 label = []
+                discount_batch = []
                 i=0
     except:
         pass
@@ -176,8 +198,10 @@ def train(num_epochs):
         for i in range(len(batches)):
             positions = batches[i].to(device)
             labels = clabels[i].to(device)
+            discount = discounts[i].to(device)
             outputs = model(positions)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels) 
+            loss = (loss * discount).mean()
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
@@ -222,6 +246,8 @@ def deep_walk():
         print("optimal steps:", optimal_steps)
         
         # if steps <= optimal_steps * 2:
+        # print("Good chance of finding milk in close to optimal steps:", bool((steps/optimal_steps) <= 2))
+        
         return True
     
     return False
@@ -243,4 +269,3 @@ if __name__ == "__main__":
     train(100)
     deep_walk()
     evaluation()
-

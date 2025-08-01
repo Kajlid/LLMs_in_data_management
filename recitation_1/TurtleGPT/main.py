@@ -4,7 +4,6 @@ from trainer import Trainer
 import torch
 
 set_ups = {
-    'bigger-turtle': {'c_window_size':32,'n_layer':5, 'n_head':6, 'd_model':240, 'batch_size':64}, # for testing
     'big-turtle': {'c_window_size':32,'n_layer':5, 'n_head':6, 'd_model':192, 'batch_size':64},
     'baby-turtle': {'c_window_size':32,'n_layer':1, 'n_head':1, 'd_model':32, 'batch_size':64},
     'nano-turtle': {'c_window_size':32,'n_layer':1, 'n_head':1, 'd_model':4, 'batch_size':64}
@@ -19,6 +18,7 @@ print(f"USAGE:{usage}")
 turtle_type = 'baby-turtle'
 vocab_size = 100
 corpus_file = "corpora/stories.txt"
+# corpus_file = "corpora/reasoning.txt"
 
 train_dataset = Corpus(set_ups[turtle_type]['c_window_size'], corpus_file, vocab_size=vocab_size)
 
@@ -50,6 +50,7 @@ if __name__ == '__main__':
 
     elif usage == 'pretraining':
         prompt_file = corpus_file.split(".txt")[0] + "-prompts.txt"
+        # prompt_file = corpus_file
         trainer = Trainer(model,
                           train_dataset,
                           learning_rate=LEARNING_RATE,
@@ -58,7 +59,7 @@ if __name__ == '__main__':
         trainer.run()
 
     elif usage == 'SFT':
-        corpus_file = "corpora/stories-sft.txt"
+        corpus_file = "corpora/reasoning.txt"
         prompt_file = corpus_file.split(".txt")[0] + "-prompts.txt"
         cram_down = Corpus(set_ups[turtle_type]['c_window_size'],
                            corpus_file,
